@@ -1,0 +1,94 @@
+
+void create_vein_wall_cell( void );
+
+void create_vein_wall_cell( void )
+{
+	vein_wall_cell = cell_defaults;
+	initialize_default_cell_definition();
+	vein_wall_cell.name = "vein_wall_cell";
+	vein_wall_cell.type = 4;
+	
+	//cell cycle - turn off
+	vein_wall_cell.phenotype.cycle.model().transition_rate(0,0) = 0;
+	
+	//turn off motility
+	vein_wall_cell.phenotype.motility.is_motile = false; 
+	vein_wall_cell.phenotype.motility.migration_speed = 0;
+	
+	//turn off secretents uptake
+	vein_wall_cell.phenotype.secretion.uptake_rates[0] = 0;
+	vein_wall_cell.phenotype.secretion.uptake_rates[1] = 0;
+	vein_wall_cell.phenotype.secretion.uptake_rates[2] = 0;
+	vein_wall_cell.phenotype.secretion.uptake_rates[3] = 0;
+	vein_wall_cell.phenotype.secretion.uptake_rates[4] = 0;
+	
+	vein_wall_cell.phenotype.secretion.secretion_rates[0] = 0;
+	vein_wall_cell.phenotype.secretion.secretion_rates[1] = 0;
+	vein_wall_cell.phenotype.secretion.secretion_rates[2] = 0;
+	vein_wall_cell.phenotype.secretion.secretion_rates[3] = 0;
+	vein_wall_cell.phenotype.secretion.secretion_rates[4] = 10;
+		
+	return;
+	
+}
+
+
+
+Epil-viral:
+	cp ./sample_projects/Epithelial_Viral_Infection/custom_modules/* ./custom_modules/
+	touch main.cpp && cp main.cpp main-backup.cpp
+	cp ./sample_projects/Epithelial_Viral_Infection/main-epil-virus.cpp ./main.cpp 
+	cp Makefile Makefile-backup
+	cp ./sample_projects/Epithelial_Viral_Infection/Makefile .
+	cp ./config/PhysiCell_settings.xml ./config/PhysiCell_settings-backup.xml 
+	cp ./sample_projects/Epithelial_Viral_Infection/config/* ./config/	
+	
+	
+	
+	
+
+	create_vein_wall_cell();
+	
+	
+	
+	
+
+	// placing vein wall cells
+	
+	int length_wall = 100;
+	int ij = 0;
+	double step1=(-300+400)/length_wall;
+	double step2=(-300+500)/length_wall;
+	double step3=(1000-300)/length_wall;
+	double step4=(1000-300)/length_wall;
+	
+	double  x1 = -400;
+	double  x2 = -500;
+	double  x3 = 300;
+	double  x4 = 300;
+	
+	Cell* pCell1 = NULL; 
+	Cell* pCell2 = NULL; 
+	Cell* pCell3 = NULL; 
+	Cell* pCell4 = NULL; 
+	
+	for( int ij=0; ij<length_wall; ij++ )
+	{
+		
+		pCell1 = create_cell(vein_wall_cell);// assigning vein wall cell
+		pCell1->assign_position( x1 , (-700+100)/(-400+300)*(x1+300)-100 , 0.0 );
+		x1 +=step1;
+		
+		pCell2 = create_cell(vein_wall_cell);// assigning vein wall cell
+		pCell2->assign_position( x2 , (-800+100)/(-500+300)*(x2+300)-100 , 0.0 );
+		x2 +=step2;
+		
+		pCell3 = create_cell(vein_wall_cell);// assigning vein wall cell
+		pCell3->assign_position( x3 , (30-20)/(1000-300)*(x3-1000)+20 , 0.0 );
+		x3 +=step3;
+	
+		pCell4 = create_cell(vein_wall_cell);// assigning vein wall cell
+		pCell4->assign_position( x4 , (100-20)/(1000-300)*(x4-1000)+100 , 0.0 );
+		x4 +=step4;
+	}
+	return; 

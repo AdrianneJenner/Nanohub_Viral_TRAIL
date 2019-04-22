@@ -1,0 +1,27 @@
+
+static int n_fast_virus = microenvironment.find_density_index( "fast diffusing virus");
+static int n_slow_virus = microenvironment.find_density_index( "slow diffusing virus");
+static int n_ECM = microenvironment.find_density_index( "ECM");
+
+double threshold = parameters.doubles( "ECM threshold"); 
+
+for( int n = 0 ;  n < microenvironment.mesh.voxels.size() ; n++ )
+{
+	std::vector<double> = microenvironment.mesh.voxels[n].center; 
+	
+	if( microenvironment(n)[ n_ECM ] < threshold )
+	{
+		microenvironment(n)[n_fast_virus] += microenvironment(n)[n_slow_virus];
+		microenvironment(n)[n_slow_virus] = 0; 
+	
+	}
+	else
+	{
+		microenvironment(n)[n_slow_virus] += microenvironment(n)[n_fast_virus];
+		microenvironment(n)[n_fast_virus] = 0; 
+	
+	
+	}
+
+}
+

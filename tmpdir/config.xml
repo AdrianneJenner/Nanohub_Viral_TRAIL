@@ -1,0 +1,87 @@
+<PhysiCell_settings version="devel-version">
+	<domain>
+		<x_min>-1000.0</x_min>
+		<x_max>1000.0</x_max>
+		<y_min>-1000.0</y_min>
+		<y_max>1000.0</y_max>
+		<z_min>-10.0</z_min>
+		<z_max>10.0</z_max>
+		<dx>20.0</dx>
+		<dy>20.0</dy>
+		<dz>20.0</dz>
+		<use_2D>true</use_2D>
+	</domain>
+	
+	<overall>
+		<max_time units="min">64800.0</max_time> 
+		<time_units>min</time_units>
+		<space_units>micron</space_units>
+	</overall>
+	
+	<parallel>
+		<omp_num_threads>1</omp_num_threads>
+	</parallel> 
+	
+	<save>
+		<folder>.</folder>  
+
+		<full_data>
+			<interval units="min">60</interval>
+			<enable>True</enable>
+		</full_data>
+		
+		<SVG>
+			<interval units="min">60</interval>
+			<enable>True</enable>
+		</SVG>
+		
+		<legacy_data>
+			<enable>false</enable>
+		</legacy_data>
+	</save>
+	
+	<user_parameters>
+		<tumor_radius type="double" units="micron">250.0</tumor_radius>
+		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
+		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
+		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
+		<oncoprotein_max type="double" units="dimensionless">2.0</oncoprotein_max>
+		<random_seed type="int" units="dimensionless">0</random_seed>
+		
+		
+		<cancerous_astrocyte_non_motile_speed type="double" units="micron/min">0.05</cancerous_astrocyte_non_motile_speed>
+		<cancerous_astrocyte_apoptosis_rate type="double" units="1/min">4.065e-05</cancerous_astrocyte_apoptosis_rate>
+		<cancerous_astrocyte_cell_cell_adhesion_strength type="double" units="micron/min">0.85</cancerous_astrocyte_cell_cell_adhesion_strength>
+		<astrocyte_paracrine_secretion_rate type="double" units="1/min">1.0</astrocyte_paracrine_secretion_rate>
+		<astrocyte_paracrine_uptake_rate type="double" units="1/min">0.001</astrocyte_paracrine_uptake_rate>
+		<microglia_paracrine_uptake_rate type="double" units="1/min">0.01</microglia_paracrine_uptake_rate>
+		<astrocyte_paracrine_saturation_density type="double" units="dimensionless">2.0</astrocyte_paracrine_saturation_density>
+		<increase_proliferation_threshold type="double" units="dimensionless">0.1</increase_proliferation_threshold>
+		<become_migrating_threshold type="double" units="dimensionless">0.6</become_migrating_threshold>
+		<chemoattractant_secretion_rate type="double" units="1/min">0.7</chemoattractant_secretion_rate>
+		
+		
+		<microglia_motile_speed type="double" units="micron/min">0.0001</microglia_motile_speed>
+		<microglia_macrophage_biasing_detection_threshold type="double" units="dimensionless">0.15</microglia_macrophage_biasing_detection_threshold>
+		
+		
+		<transfer_to_cancerous_threshold type="double" units="dimensionless">1.1858</transfer_to_cancerous_threshold>
+		
+		
+		
+		<intrinsic_infection_rate type="double" units="dimensionless">0.1</intrinsic_infection_rate> 
+		<infection_density_capacity type="double" units="dimensionless">1000.0</infection_density_capacity>
+		<viral_replication_rate type="double" units="dimensionless">0.1</viral_replication_rate>
+		<no_of_viruses_in_initial_injection type="double" units="dimensionless">500.0</no_of_viruses_in_initial_injection>
+		<virus_replication_minimum type="double" units="dimensionless">10.0</virus_replication_minimum>
+		
+		
+		<secretion_rate_vein_wall_cell type="double" units="1/min">0.1</secretion_rate_vein_wall_cell>
+		
+		
+		<TRAIL_secretion_rate type="double" units="1/min">0.1</TRAIL_secretion_rate>
+		<TRAIL_killing_level type="double" units="dimensionless">0.001</TRAIL_killing_level>
+		
+	</user_parameters>
+	
+</PhysiCell_settings>

@@ -1,0 +1,279 @@
+/*
+###############################################################################
+# If you use PhysiCell in your project, please cite PhysiCell and the version #
+# number, such as below:                                                      #
+#                                                                             #
+# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
+#                                                                             #
+# [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
+#     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
+#     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
+#     DOI: 10.1371/journal.pcbi.1005991                                       #
+#                                                                             #
+# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
+#     x.y.z. Call display_citations() to get detailed information on all cite-#
+#     able software used in your PhysiCell application.                       #
+#                                                                             #
+# Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
+#     as below:                                                               #
+#                                                                             #
+# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
+# with BioFVM [2] to solve the transport equations.                           #
+#                                                                             #
+# [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
+#     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
+#     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
+#     DOI: 10.1371/journal.pcbi.1005991                                       #
+#                                                                             #
+# [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
+#     llelized diffusive transport solver for 3-D biological simulations,     #
+#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
+#                                                                             #
+###############################################################################
+#                                                                             #
+# BSD 3-Clause License (see https://opensource.org/licenses/BSD-3-Clause)     #
+#                                                                             #
+# Copyright (c) 2015-2018, Paul Macklin and the PhysiCell Project             #
+# All rights reserved.                                                        #
+#                                                                             #
+# Redistribution and use in source and binary forms, with or without          #
+# modification, are permitted provided that the following conditions are met: #
+#                                                                             #
+# 1. Redistributions of source code must retain the above copyright notice,   #
+# this list of conditions and the following disclaimer.                       #
+#                                                                             #
+# 2. Redistributions in binary form must reproduce the above copyright        #
+# notice, this list of conditions and the following disclaimer in the         #
+# documentation and/or other materials provided with the distribution.        #
+#                                                                             #
+# 3. Neither the name of the copyright holder nor the names of its            #
+# contributors may be used to endorse or promote products derived from this   #
+# software without specific prior written permission.                         #
+#                                                                             #
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" #
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE   #
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE  #
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE   #
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR         #
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF        #
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS    #
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN     #
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)     #
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE  #
+# POSSIBILITY OF SUCH DAMAGE.                                                 #
+#                                                                             #
+###############################################################################
+*/
+
+#include "./Epil_virus.h"
+#include "../modules/PhysiCell_settings.h"
+
+
+Cell_Definition epithelial_cell;
+//Cell_Definition vein_wall_cell;
+
+
+
+void create_epithelial_cell( void )
+{
+	epithelial_cell = cell_defaults;
+	initialize_default_cell_definition();
+	
+	epithelial_cell.name = "epithelial cell";
+	epithelial_cell.type = 0;
+		
+	// motility
+	epithelial_cell.phenotype.motility.is_motile = false; 
+
+	// turn off proliferation and death 
+	epithelial_cell.phenotype.cycle.sync_to_cycle_model( live ); 
+	int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+	int apoptosis_index = epithelial_cell.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
+	
+	epithelial_cell.phenotype.cycle.data.transition_rate( cycle_start_index , cycle_end_index ) = 0.0; 
+	epithelial_cell.phenotype.death.rates[apoptosis_index] = 0.0; 
+	
+	// set functions 
+	epithelial_cell.functions.update_phenotype = virus_dynamics;
+	//epithelial_cell.functions.custom_cell_rule = immune_cell_rule; 
+	
+	epithelial_cell.custom_data.add_variable( "intracellular_virus_amount", "dimensionless", 0.0 );
+	epithelial_cell.custom_data.add_variable( "infection_time_length", "min", -1.0 );
+	return;
+		
+}
+
+void create_cell_types( void )
+{
+
+	SeedRandom( parameters.ints( "random_seed" ) ); 
+	
+	// housekeeping 
+	initialize_default_cell_definition();	
+	cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment ); 
+	
+	
+	cell_defaults.phenotype.cycle.sync_to_cycle_model( live ); 
+	cell_defaults.phenotype.secretion.uptake_rates[0] = 0; // secretion_rates is a vector of secretion rates for the substrates in the microenvironment
+	
+	// Make sure we're ready for 2D
+	cell_defaults.functions.set_orientation = up_orientation;  
+	cell_defaults.phenotype.geometry.polarity = 1.0; 
+	cell_defaults.phenotype.motility.restrict_to_2D = true; 
+
+// turn off proliferation and death 
+	
+	int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
+	
+	cell_defaults.phenotype.cycle.data.transition_rate( cycle_start_index , cycle_end_index ) = 0.0; 
+	cell_defaults.phenotype.death.rates[apoptosis_index] = 0.0; 
+	
+	cell_defaults.functions.update_phenotype = NULL; 
+	
+	create_epithelial_cell();
+	return; 
+}
+
+void setup_microenvironment( void )
+{
+	// set domain parameters
+
+	/* now this is in XML 
+		default_microenvironment_options.X_range = {-1000, 1000}; 
+		default_microenvironment_options.Y_range = {-1000, 1000}; 
+		default_microenvironment_options.simulate_2D = true; 
+	*/
+	
+	// make sure not override and go back to 2D 
+	if( default_microenvironment_options.simulate_2D == false )
+	{
+		std::cout << "Warning: overriding XML config option and setting to 2D!" << std::endl; 
+		default_microenvironment_options.simulate_2D = true; 
+	}
+	
+	// chemoattractant gradient needed	
+	default_microenvironment_options.calculate_gradients = true; 	
+	
+	// let BioFVM use oxygen as the default 
+	default_microenvironment_options.use_oxygen_as_first_field = false; 
+	
+	// set Dirichlet conditions 
+	default_microenvironment_options.outer_Dirichlet_conditions = true;
+	default_microenvironment_options.Dirichlet_condition_vector[0] = 40; // normoxic conditions 
+	
+	initialize_microenvironment(); 	
+
+	return; 
+}	
+
+void setup_tissue( void )
+{
+	double number_of_points_in_line = 150.0;
+	double x_off_set = -500.0+1000.0/number_of_points_in_line/2;
+	double y_off_Set = -500.0+1000.0/number_of_points_in_line/2;
+	
+	double intervalsize = 1000.0/number_of_points_in_line;
+	
+	Cell* pCell = NULL; 
+	
+	double x = 0.0;
+	double y = 0.0;
+	
+	for( int i=0; i<number_of_points_in_line; i++ )
+	{	
+		if( i % 2 == 0)
+		{
+			x = -500.0+i*intervalsize;}
+		else
+		{x = x_off_set+i*intervalsize;}
+		
+		for( int j=0; j<number_of_points_in_line; j++ )
+		{
+			y = -500.0+j*intervalsize;
+			pCell = create_cell( );
+			pCell->assign_position( x , y , 0.0 );
+			pCell->is_movable = false;
+			j++;
+		}
+		i++;
+	}	
+
+}
+
+void virus_dynamics( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	// find virus index
+	static int virus_signal_index	= microenvironment.find_density_index( "virus" ); 
+	
+	// sample amount of virus
+	double virus_amount = pCell->nearest_density_vector()[virus_signal_index];
+	static double increase_proliferation_threshold = 
+		parameters.doubles("increase_proliferation_threshold"); // 0.001; 
+	
+	static int infection_time_index = pCell->custom_data.find_variable_index( "infection_time_length" );	
+	static int intracellular_virus_index = pCell->custom_data.find_variable_index( "intracellular_virus_amount" );
+	
+	if( pCell->custom_data[infection_time_index] = 0 && virus_amount>virus_min)
+	{
+		// infection occurs
+		pCell->custom_data[infection_time_index] = dt;
+		pCell->custom_data[intracellular_virus_index] = virus_amount;
+		pCell->phenotype.secretion.uptake_rates = virus_amout/dt;
+	}
+	else if( pCell->custom_data[infection_time_index] > 0 && pCell->custom_data[infection_time_index] < length_of_infect)
+	{
+		pCell->custom_data[infection_time_index] = pCell->custom_data[infection_time_index]+dt;
+		pCell->custom_data[intracellular_virus_index] = pCell->custom_data[intracellular_virus_index]+virus_amount;
+		pCell->phenotype.secretion.uptake_rates = virus_amout/dt;
+	}
+	else if( pCell->custom_data[infection_time_index] = length_of_infect )
+	{
+		pCell->custom_data[infection_time_index] = -1;
+		pCell->phenotype.secretion.secretion_rates = viral_progeny/dt
+		pC->start_death( apoptosis_model_index );
+		
+	}
+	return;
+}
+
+std::vector<std::string> colouring_by_cell_type_and_cycle( Cell* pCell )
+{
+	std::vector< std::string > output( 4, "darkgrey" ); 
+	
+	static int infection_time_index = pCell->custom_data.find_variable_index( "infection_time_length" );
+	
+	if( pCell->phenotype.death.dead == false )
+		{
+			if( pCell->custom_data[infection_time_index] == 0 )
+			{
+				output[0] = "rgb(255, 182, 193)";
+				output[1] = "rgb(255, 182, 193)";
+				output[2] = "rgb(255, 160, 122)";
+				output[3] = "rgb(255, 160, 122)";
+				return output; 
+			}
+			else if( pCell->custom_data[infection_time_index] > 0 )
+			{
+				output[0] = "rgb(186, 85, 211)";
+				output[1] = "rgb(186, 85, 211)";
+				output[2] = "rgb(123, 104, 238)";
+				output[3] = "rgb(123, 104, 238)";
+			}
+		}
+	if( pCell->phenotype.death.dead == true )
+	{ 
+			output[0] = "rgb(255, 255, 224)";
+			output[1] = "rgb(255, 255, 224)";
+			output[2] = "rgb(255, 228, 181)";
+			output[3] = "rgb(255, 228, 181)";
+		return output; 
+	}
+	
+	return output;
+}
+
