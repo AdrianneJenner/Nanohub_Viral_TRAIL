@@ -1,4 +1,4 @@
 #!/bin/sh
 
-/usr/bin/invoke_app "$@" -C "start_jupyter -A -T @tool NanoHub_Viral_TRAIL.ipynb" -t iu399sp19p101 \
+/usr/bin/invoke_app "$@" -C "start_jupyter -A -T @tool Nanohub_Viral_TRAIL.ipynb" -t iu399sp19p101 \
                          -u anaconda3-5.1

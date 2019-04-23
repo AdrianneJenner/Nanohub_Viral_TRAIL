@@ -83,7 +83,11 @@ void setup_microenvironment( void );  // done
 
 void virus_dynamics( Cell* pCell, Phenotype& phenotype, double dt );
 
-void virus_dynamics_TRAIL( Cell* pCell, Phenotype& phenotype, double dt );
+void virus_dynamics_TRAIL_MODEL1( Cell* pCell, Phenotype& phenotype, double dt );
+
+void virus_dynamics_TRAIL_MODEL2( Cell* pCell, Phenotype& phenotype, double dt );
+
+void virus_dynamics_TRAIL_MODEL3( Cell* pCell, Phenotype& phenotype, double dt );
 
 void intravenous_injection_saturation( Cell* pCell, Phenotype& phenotype, double dt );
 

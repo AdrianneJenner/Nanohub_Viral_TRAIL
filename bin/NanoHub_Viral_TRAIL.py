@@ -101,7 +101,7 @@ def write_config_file(name):
 
 # callback from write_config_button
 def write_config_file_cb(b):
-    path_to_share = os.path.join('~', '.local','share','NanoHub_Viral_TRAIL')
+    path_to_share = os.path.join('~', '.local','share','Nanohub_Viral_TRAIL')
     dirname = os.path.expanduser(path_to_share)
 
     val = write_config_box.value
@@ -115,7 +115,7 @@ def write_config_file_cb(b):
 # default & previous config options)
 def get_config_files():
     cf = {'DEFAULT': full_xml_filename}
-    path_to_share = os.path.join('~', '.local','share','NanoHub_Viral_TRAIL')
+    path_to_share = os.path.join('~', '.local','share','Nanohub_Viral_TRAIL')
     dirname = os.path.expanduser(path_to_share)
     try:
         os.makedirs(dirname)
@@ -127,12 +127,12 @@ def get_config_files():
 
     # Find the dir path (full_path) to the cached dirs
     if nanoHUB_flag:
-        full_path = os.path.expanduser("~/data/results/.submit_cache/NanoHub_Viral_TRAIL")  # does Windows like this?
+        full_path = os.path.expanduser("~/data/results/.submit_cache/Nanohub_Viral_TRAIL")  # does Windows like this?
     else:
         # local cache
         try:
             cachedir = os.environ['CACHEDIR']
-            full_path = os.path.join(cachedir, "NanoHub_Viral_TRAIL")
+            full_path = os.path.join(cachedir, "Nanohub_Viral_TRAIL")
         except:
             print("Exception in get_config_files")
             return cf
@@ -177,7 +177,7 @@ def run_done_func(s, rdir):
     
     if nanoHUB_flag:
         # Email the user that their job has completed
-        os.system("submit  mail2self -s 'nanoHUB NanoHub_Viral_TRAIL' -t 'Your Run completed.'&")
+        os.system("submit  mail2self -s 'nanoHUB Nanohub_Viral_TRAIL' -t 'Your Run completed.'&")
 
     # save the config file to the cache directory
     shutil.copy('config.xml', rdir)
@@ -230,7 +230,7 @@ def run_sim_func(s):
 
     if nanoHUB_flag:
         if remote_cb.value:
-            s.run(run_name, "-v ncn-hub_M@brown -n 8 -w 1440 NanoHub_Viral_TRAIL-r7 config.xml")   # "-r7" suffix??
+            s.run(run_name, "-v ncn-hub_M@brown -n 8 -w 1440 Nanohub_Viral_TRAIL-r7 config.xml")   # "-r7" suffix??
         else:
             # read_config.index = 0   # reset Dropdown 'Load Config' to 'DEFAULT' when Run interactively
             s.run(run_name, "--local ../bin/myproj config.xml")
@@ -292,14 +292,14 @@ if nanoHUB_flag:
     run_button = Submit(label='Run',
                        start_func=run_sim_func,
                         done_func=run_done_func,
-                        cachename='NanoHub_Viral_TRAIL',
+                        cachename='Nanohub_Viral_TRAIL',
                         showcache=False,
                         outcb=outcb)
 else:
     if (hublib_flag):
         run_button = RunCommand(start_func=run_sim_func,
                             done_func=run_done_func,
-                            cachename='NanoHub_Viral_TRAIL',
+                            cachename='Nanohub_Viral_TRAIL',
                             showcache=False,
                             outcb=outcb)  
     else:
@@ -328,7 +328,7 @@ tabs = widgets.Tab(children=[about_tab.tab, config_tab.tab, user_tab.tab, svg.ta
 
 homedir = os.getcwd()
 
-tool_title = widgets.Label(r'\(\textbf{NanoHub_Viral_TRAIL}\)')
+tool_title = widgets.Label(r'\(\textbf{Nanohub_Viral_TRAIL}\)')
 if nanoHUB_flag or hublib_flag:
     # define this, but don't use (yet)
     remote_cb = widgets.Checkbox(indent=False, value=False, description='Submit as Batch Job to Clusters/Grid')

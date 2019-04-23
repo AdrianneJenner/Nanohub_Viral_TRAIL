@@ -225,20 +225,68 @@ class UserTab(object):
           step=0.01,
           style=style, layout=widget_layout)
 
-        param_name26 = Button(description='TRAIL_secretion_rate', disabled=True, layout=name_button_layout)
+        param_name26 = Button(description='time_of_first_injection', disabled=True, layout=name_button_layout)
         param_name26.style.button_color = 'tan'
+
+        self.time_of_first_injection = FloatText(
+          value=0,
+          step=0.01,
+          style=style, layout=widget_layout)
+
+        param_name27 = Button(description='time_of_second_injection', disabled=True, layout=name_button_layout)
+        param_name27.style.button_color = 'lightgreen'
+
+        self.time_of_second_injection = FloatText(
+          value=100,
+          step=10,
+          style=style, layout=widget_layout)
+
+        param_name28 = Button(description='time_of_third_injection', disabled=True, layout=name_button_layout)
+        param_name28.style.button_color = 'tan'
+
+        self.time_of_third_injection = FloatText(
+          value=200,
+          step=10,
+          style=style, layout=widget_layout)
+
+        param_name29 = Button(description='TRAIL_secretion_rate', disabled=True, layout=name_button_layout)
+        param_name29.style.button_color = 'lightgreen'
 
         self.TRAIL_secretion_rate = FloatText(
           value=0.1,
           step=0.01,
           style=style, layout=widget_layout)
 
-        param_name27 = Button(description='TRAIL_killing_level', disabled=True, layout=name_button_layout)
-        param_name27.style.button_color = 'lightgreen'
+        param_name30 = Button(description='TRAIL_killing_level', disabled=True, layout=name_button_layout)
+        param_name30.style.button_color = 'tan'
 
         self.TRAIL_killing_level = FloatText(
           value=1e-3,
           step=0.0001,
+          style=style, layout=widget_layout)
+
+        param_name31 = Button(description='Model_flag', disabled=True, layout=name_button_layout)
+        param_name31.style.button_color = 'lightgreen'
+
+        self.Model_flag = IntText(
+          value=3,
+          step=0.1,
+          style=style, layout=widget_layout)
+
+        param_name32 = Button(description='TRAIL_generation_rate', disabled=True, layout=name_button_layout)
+        param_name32.style.button_color = 'tan'
+
+        self.TRAIL_generation_rate = FloatText(
+          value=3,
+          step=0.1,
+          style=style, layout=widget_layout)
+
+        param_name33 = Button(description='M', disabled=True, layout=name_button_layout)
+        param_name33.style.button_color = 'lightgreen'
+
+        self.M = FloatText(
+          value=0.01,
+          step=0.001,
           style=style, layout=widget_layout)
 
         units_button1 = Button(description='micron', disabled=True, layout=units_button_layout) 
@@ -291,10 +339,22 @@ class UserTab(object):
         units_button24.style.button_color = 'tan'
         units_button25 = Button(description='1/min', disabled=True, layout=units_button_layout) 
         units_button25.style.button_color = 'lightgreen'
-        units_button26 = Button(description='1/min', disabled=True, layout=units_button_layout) 
+        units_button26 = Button(description='min', disabled=True, layout=units_button_layout) 
         units_button26.style.button_color = 'tan'
-        units_button27 = Button(description='', disabled=True, layout=units_button_layout) 
+        units_button27 = Button(description='min', disabled=True, layout=units_button_layout) 
         units_button27.style.button_color = 'lightgreen'
+        units_button28 = Button(description='min', disabled=True, layout=units_button_layout) 
+        units_button28.style.button_color = 'tan'
+        units_button29 = Button(description='1/min', disabled=True, layout=units_button_layout) 
+        units_button29.style.button_color = 'lightgreen'
+        units_button30 = Button(description='', disabled=True, layout=units_button_layout) 
+        units_button30.style.button_color = 'tan'
+        units_button31 = Button(description='', disabled=True, layout=units_button_layout) 
+        units_button31.style.button_color = 'lightgreen'
+        units_button32 = Button(description='1/min', disabled=True, layout=units_button_layout) 
+        units_button32.style.button_color = 'tan'
+        units_button33 = Button(description='', disabled=True, layout=units_button_layout) 
+        units_button33.style.button_color = 'lightgreen'
 
         desc_button1 = Button(description='', disabled=True, layout=desc_button_layout) 
         desc_button1.style.button_color = 'lightgreen'
@@ -350,6 +410,18 @@ class UserTab(object):
         desc_button26.style.button_color = 'tan'
         desc_button27 = Button(description='', disabled=True, layout=desc_button_layout) 
         desc_button27.style.button_color = 'lightgreen'
+        desc_button28 = Button(description='', disabled=True, layout=desc_button_layout) 
+        desc_button28.style.button_color = 'tan'
+        desc_button29 = Button(description='', disabled=True, layout=desc_button_layout) 
+        desc_button29.style.button_color = 'lightgreen'
+        desc_button30 = Button(description='', disabled=True, layout=desc_button_layout) 
+        desc_button30.style.button_color = 'tan'
+        desc_button31 = Button(description='', disabled=True, layout=desc_button_layout) 
+        desc_button31.style.button_color = 'lightgreen'
+        desc_button32 = Button(description='', disabled=True, layout=desc_button_layout) 
+        desc_button32.style.button_color = 'tan'
+        desc_button33 = Button(description='', disabled=True, layout=desc_button_layout) 
+        desc_button33.style.button_color = 'lightgreen'
 
         row1 = [param_name1, self.tumor_radius, units_button1, desc_button1] 
         row2 = [param_name2, self.oncoprotein_mean, units_button2, desc_button2] 
@@ -376,8 +448,14 @@ class UserTab(object):
         row23 = [param_name23, self.no_of_viruses_in_initial_injection, units_button23, desc_button23] 
         row24 = [param_name24, self.virus_replication_minimum, units_button24, desc_button24] 
         row25 = [param_name25, self.secretion_rate_vein_wall_cell, units_button25, desc_button25] 
-        row26 = [param_name26, self.TRAIL_secretion_rate, units_button26, desc_button26] 
-        row27 = [param_name27, self.TRAIL_killing_level, units_button27, desc_button27] 
+        row26 = [param_name26, self.time_of_first_injection, units_button26, desc_button26] 
+        row27 = [param_name27, self.time_of_second_injection, units_button27, desc_button27] 
+        row28 = [param_name28, self.time_of_third_injection, units_button28, desc_button28] 
+        row29 = [param_name29, self.TRAIL_secretion_rate, units_button29, desc_button29] 
+        row30 = [param_name30, self.TRAIL_killing_level, units_button30, desc_button30] 
+        row31 = [param_name31, self.Model_flag, units_button31, desc_button31] 
+        row32 = [param_name32, self.TRAIL_generation_rate, units_button32, desc_button32] 
+        row33 = [param_name33, self.M, units_button33, desc_button33] 
 
         box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
         box1 = Box(children=row1, layout=box_layout)
@@ -407,6 +485,12 @@ class UserTab(object):
         box25 = Box(children=row25, layout=box_layout)
         box26 = Box(children=row26, layout=box_layout)
         box27 = Box(children=row27, layout=box_layout)
+        box28 = Box(children=row28, layout=box_layout)
+        box29 = Box(children=row29, layout=box_layout)
+        box30 = Box(children=row30, layout=box_layout)
+        box31 = Box(children=row31, layout=box_layout)
+        box32 = Box(children=row32, layout=box_layout)
+        box33 = Box(children=row33, layout=box_layout)
 
         self.tab = VBox([
           box1,
@@ -436,6 +520,12 @@ class UserTab(object):
           box25,
           box26,
           box27,
+          box28,
+          box29,
+          box30,
+          box31,
+          box32,
+          box33,
         ])
 
     # Populate the GUI widgets with values from the XML
@@ -466,8 +556,14 @@ class UserTab(object):
         self.no_of_viruses_in_initial_injection.value = float(uep.find('.//no_of_viruses_in_initial_injection').text)
         self.virus_replication_minimum.value = float(uep.find('.//virus_replication_minimum').text)
         self.secretion_rate_vein_wall_cell.value = float(uep.find('.//secretion_rate_vein_wall_cell').text)
+        self.time_of_first_injection.value = float(uep.find('.//time_of_first_injection').text)
+        self.time_of_second_injection.value = float(uep.find('.//time_of_second_injection').text)
+        self.time_of_third_injection.value = float(uep.find('.//time_of_third_injection').text)
         self.TRAIL_secretion_rate.value = float(uep.find('.//TRAIL_secretion_rate').text)
         self.TRAIL_killing_level.value = float(uep.find('.//TRAIL_killing_level').text)
+        self.Model_flag.value = int(uep.find('.//Model_flag').text)
+        self.TRAIL_generation_rate.value = float(uep.find('.//TRAIL_generation_rate').text)
+        self.M.value = float(uep.find('.//M').text)
 
 
     # Read values from the GUI widgets to enable editing XML
@@ -498,5 +594,11 @@ class UserTab(object):
         uep.find('.//no_of_viruses_in_initial_injection').text = str(self.no_of_viruses_in_initial_injection.value)
         uep.find('.//virus_replication_minimum').text = str(self.virus_replication_minimum.value)
         uep.find('.//secretion_rate_vein_wall_cell').text = str(self.secretion_rate_vein_wall_cell.value)
+        uep.find('.//time_of_first_injection').text = str(self.time_of_first_injection.value)
+        uep.find('.//time_of_second_injection').text = str(self.time_of_second_injection.value)
+        uep.find('.//time_of_third_injection').text = str(self.time_of_third_injection.value)
         uep.find('.//TRAIL_secretion_rate').text = str(self.TRAIL_secretion_rate.value)
         uep.find('.//TRAIL_killing_level').text = str(self.TRAIL_killing_level.value)
+        uep.find('.//Model_flag').text = str(self.Model_flag.value)
+        uep.find('.//TRAIL_generation_rate').text = str(self.TRAIL_generation_rate.value)
+        uep.find('.//M').text = str(self.M.value)

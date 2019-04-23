@@ -123,7 +123,10 @@ void create_cell_types( void )
 	cell_defaults.custom_data.add_variable( "time_of_injection", "dimensionless", 0.0 );
 	
 	std::vector<double> namekk(3);
-	namekk = {0,100,200};
+	int inj1 = parameters.doubles.find_index("time_of_first_injection");
+	int inj2 = parameters.doubles.find_index("time_of_second_injection");
+	int inj3 = parameters.doubles.find_index("time_of_third_injection");
+	namekk = {parameters.doubles(inj1),parameters.doubles(inj2),parameters.doubles(inj3)};
 	std::cout<<namekk<<std::endl;
 	cell_defaults.custom_data.add_vector_variable( "time_of_injections", "dimensionless", namekk );
 	
@@ -140,8 +143,27 @@ void create_cell_types( void )
 	cell_defaults.phenotype.secretion.uptake_rates[2] = 0;
 	cell_defaults.phenotype.secretion.saturation_densities[2] = 10; 
 	
+	
 	// update cell and phenotype based on virus dynamics only
-	cell_defaults.functions.update_phenotype = virus_dynamics_TRAIL; 
+	
+	int flaggindex = parameters.ints.find_index("Model_flag");
+	
+	
+	if( parameters.ints(flaggindex) == 1 )
+	{
+		std::cout<<"here"<<std::endl;
+		cell_defaults.functions.update_phenotype = virus_dynamics_TRAIL_MODEL1; 
+	}
+	else if(parameters.ints(flaggindex) ==2 )
+	{
+		cell_defaults.functions.update_phenotype = virus_dynamics_TRAIL_MODEL2; 
+		cell_defaults.custom_data.add_variable( "intracellular_TRAIL_amount", "dimensionless", 0.0 );
+		
+	}
+	else if(parameters.ints(flaggindex) ==3 )
+	{
+		cell_defaults.functions.update_phenotype = virus_dynamics_TRAIL_MODEL3; 
+	}
 	//cell_defaults.functions.custom_cell_rule = virus_dynamics; 
 	
 	cell_defaults.phenotype.motility.is_motile = true; 
@@ -253,7 +275,7 @@ void setup_tissue( void )
 }
 
 
-void virus_dynamics_TRAIL( Cell* pCell, Phenotype& phenotype, double dt )
+void virus_dynamics_TRAIL_MODEL1( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	
 	// find virus index
@@ -337,7 +359,199 @@ void virus_dynamics_TRAIL( Cell* pCell, Phenotype& phenotype, double dt )
 	return;
 }
 
+void virus_dynamics_TRAIL_MODEL2( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	
+	// find virus index
+	static int virus_signal_index	= microenvironment.find_density_index( "virus" ); 
+	
+	// find TRAIL index
+	static int TRAIL_signal_index	= microenvironment.find_density_index( "TRAIL" ); 
+	
+	// sample amount of virus
+	double virus_amount = pCell->nearest_density_vector()[virus_signal_index];
+	
+	// sample amount of TRAIL
+	double TRAIL_amount = pCell->nearest_density_vector()[TRAIL_signal_index];
+	
+	static double intracellular_virus_index = pCell->custom_data.find_variable_index( "intracellular_virus_amount" );
+	static double intracellular_TRAIL_index = pCell->custom_data.find_variable_index( "intracellular_TRAIL_amount" );
+	
+	static double infection_density_capacity = parameters.doubles("infection_density_capacity");
+	static double intrinsic_infection_rate = parameters.doubles("intrinsic_infection_rate"); //2; 
+	static double viral_replication_rate = parameters.doubles("viral_replication_rate");	
+	static double virus_replication_minimum = parameters.doubles("virus_replication_minimum");	
+	static double TRAIL_secretion_rate = parameters.doubles("TRAIL_secretion_rate");
+	static double TRAIL_generation_rate = parameters.doubles("TRAIL_generation_rate");
+	static double TRAIL_killing_level = parameters.doubles("TRAIL_killing_level");
+	static double M = parameters.doubles("M");
+	static int apoptosis_model_index =
+		pCell->phenotype.death.find_death_model_index( "apoptosis" );
+	
+	double c_I = intrinsic_infection_rate;//rate of infection  0.1
+	double K = infection_density_capacity;//capacity of cell
+	double c_R = viral_replication_rate; // 0.1
+	double c_T = TRAIL_generation_rate; // 0.1
+	double n_Istar = virus_replication_minimum;//10
+	double rho_E = virus_amount;
+	int alpha = 1;
+	double L = K/2+1.3*K/2;
+	
+	double V_voxel = microenvironment.mesh.voxels[1].volume;//volume of voxel
+	
+	double n_I = pCell->custom_data.variables[intracellular_virus_index].value;
+	double n_E = virus_amount*V_voxel;
+	double T_I = pCell->custom_data.variables[intracellular_TRAIL_index].value;
 
+	double T_E = pCell->nearest_density_vector()[TRAIL_signal_index];
+	
+	if( T_E>1e-3)
+	{
+	pCell->phenotype.death.rates[apoptosis_model_index] = T_E*T_E/(M*M+T_E*T_E);
+	}
+		if( pCell->phenotype.death.dead==false && virus_amount>1e-3)
+		{
+			if( n_I > n_Istar )
+			{
+				pCell->custom_data.variables[intracellular_virus_index].value = n_I+dt*(c_I*n_E*(1-n_I/K)+c_R);
+				pCell->custom_data.variables[intracellular_TRAIL_index].value = T_I+dt*c_T;
+			}
+			else
+			{pCell->custom_data.variables[intracellular_virus_index].value = n_I+dt*(c_I*n_E*(1-n_I/K));}
+
+			n_I = pCell->custom_data.variables[intracellular_virus_index].value;
+			pCell->phenotype.secretion.uptake_rates[virus_signal_index] = c_I*rho_E*(1-n_I/K);
+			
+			/*
+			if( n_I>0 && n_I<K/2 )
+			{}
+			else */
+			if( n_I>=K/2 && n_I<L )
+			{
+				
+				pCell->phenotype.death.rates[apoptosis_model_index] = n_I*n_I*n_I/(L*L*L+n_I*n_I*n_I);}
+			else if(n_I > L)
+			{pCell->start_death( apoptosis_model_index );}// or cell enters apoptosis stage?}
+		}
+		else if( pCell->phenotype.death.dead==true)
+		{
+			pCell->phenotype.secretion.uptake_rates[virus_signal_index] = 0;
+			pCell->phenotype.secretion.secretion_rates[virus_signal_index] = 0;		
+			pCell->phenotype.secretion.secretion_rates[TRAIL_signal_index] = 0;
+			if( pCell->custom_data.variables[intracellular_virus_index].value>0)
+				{
+					double virus_amount_in_cell = pCell->custom_data.variables[intracellular_virus_index].value;
+					pCell->nearest_density_vector()[virus_signal_index] += virus_amount_in_cell/V_voxel;
+					pCell->custom_data.variables[intracellular_virus_index].value=0;
+					pCell->phenotype.secretion.saturation_densities[virus_signal_index] = 5;
+					
+					double TRAIL_amount_in_cell = pCell->custom_data.variables[intracellular_TRAIL_index].value;
+					pCell->nearest_density_vector()[TRAIL_signal_index] += TRAIL_amount_in_cell/V_voxel;
+					
+					pCell->custom_data.variables[intracellular_virus_index].value=0;
+				}
+		}
+	
+	return;
+}
+
+void virus_dynamics_TRAIL_MODEL3( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	
+	// find virus index
+	static int virus_signal_index	= microenvironment.find_density_index( "virus" ); 
+	
+	// find TRAIL index
+	static int TRAIL_signal_index	= microenvironment.find_density_index( "TRAIL" ); 
+	
+	// sample amount of virus
+	double virus_amount = pCell->nearest_density_vector()[virus_signal_index];
+	
+	// sample amount of TRAIL
+	double TRAIL_amount = pCell->nearest_density_vector()[TRAIL_signal_index];
+	
+	static double intracellular_virus_index = pCell->custom_data.find_variable_index( "intracellular_virus_amount" );
+	static double intracellular_TRAIL_index = pCell->custom_data.find_variable_index( "intracellular_TRAIL_amount" );
+	
+	static double infection_density_capacity = parameters.doubles("infection_density_capacity");
+	static double intrinsic_infection_rate = parameters.doubles("intrinsic_infection_rate"); //2; 
+	static double viral_replication_rate = parameters.doubles("viral_replication_rate");	
+	static double virus_replication_minimum = parameters.doubles("virus_replication_minimum");	
+	static double TRAIL_secretion_rate = parameters.doubles("TRAIL_secretion_rate");
+	static double TRAIL_generation_rate = parameters.doubles("TRAIL_generation_rate");
+	static double TRAIL_killing_level = parameters.doubles("TRAIL_killing_level");
+	static double M = parameters.doubles("M");
+	static int apoptosis_model_index =
+		pCell->phenotype.death.find_death_model_index( "apoptosis" );
+	
+	double c_I = intrinsic_infection_rate;//rate of infection  0.1
+	double K = infection_density_capacity;//capacity of cell
+	double c_R = viral_replication_rate; // 0.1
+	double c_T = TRAIL_generation_rate; // 0.1
+	double n_Istar = virus_replication_minimum;//10
+	double rho_E = virus_amount;
+	double s_T =  TRAIL_secretion_rate;
+	int alpha = 1;
+	double L = K/2+1.3*K/2;
+	
+	double V_voxel = microenvironment.mesh.voxels[1].volume;//volume of voxel
+	
+	double n_I = pCell->custom_data.variables[intracellular_virus_index].value;
+	double n_E = virus_amount*V_voxel;
+	double T_I = pCell->custom_data.variables[intracellular_TRAIL_index].value;
+
+	double T_E = pCell->nearest_density_vector()[TRAIL_signal_index];
+	
+	if( T_E>1e-3)
+	{
+	pCell->phenotype.death.rates[apoptosis_model_index] = T_E*T_E/(M*M+T_E*T_E);
+	}
+		if( pCell->phenotype.death.dead==false && virus_amount>1e-3)
+		{
+			if( n_I > n_Istar )
+			{
+				pCell->custom_data.variables[intracellular_virus_index].value = n_I+dt*(c_I*n_E*(1-n_I/K)+c_R);
+				pCell->custom_data.variables[intracellular_TRAIL_index].value = T_I+dt*(c_T-s_T*T_I);
+				pCell->phenotype.secretion.secretion_rates[TRAIL_signal_index] = s_T*T_I/V_voxel;
+			}
+			else
+			{pCell->custom_data.variables[intracellular_virus_index].value = n_I+dt*(c_I*n_E*(1-n_I/K));}
+
+			n_I = pCell->custom_data.variables[intracellular_virus_index].value;
+			pCell->phenotype.secretion.uptake_rates[virus_signal_index] = c_I*rho_E*(1-n_I/K);
+			
+			/*
+			if( n_I>0 && n_I<K/2 )
+			{}
+			else */
+			if( n_I>=K/2 && n_I<L )
+			{
+				
+				pCell->phenotype.death.rates[apoptosis_model_index] = n_I*n_I*n_I/(L*L*L+n_I*n_I*n_I);}
+			else if(n_I > L)
+			{pCell->start_death( apoptosis_model_index );}// or cell enters apoptosis stage?}
+		}
+		else if( pCell->phenotype.death.dead==true)
+		{
+			pCell->phenotype.secretion.uptake_rates[virus_signal_index] = 0;
+			pCell->phenotype.secretion.secretion_rates[virus_signal_index] = 0;		
+			pCell->phenotype.secretion.secretion_rates[TRAIL_signal_index] = 0;
+			if( pCell->custom_data.variables[intracellular_virus_index].value>0)
+				{
+					double virus_amount_in_cell = pCell->custom_data.variables[intracellular_virus_index].value;
+					pCell->nearest_density_vector()[virus_signal_index] += virus_amount_in_cell/V_voxel;
+					pCell->custom_data.variables[intracellular_virus_index].value=0;
+					pCell->phenotype.secretion.saturation_densities[virus_signal_index] = 5;
+					
+					double TRAIL_amount_in_cell = pCell->custom_data.variables[intracellular_TRAIL_index].value;
+					pCell->nearest_density_vector()[TRAIL_signal_index] += TRAIL_amount_in_cell/V_voxel;
+					
+					pCell->custom_data.variables[intracellular_virus_index].value=0;
+				}
+		}
+	
+	return;
+}
 void intravenous_injection_saturation( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	

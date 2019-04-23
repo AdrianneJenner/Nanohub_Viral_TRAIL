@@ -151,10 +151,18 @@
 		
 		<!-- for vein wall cell -->
 		<secretion_rate_vein_wall_cell type="double" units="1/min">0.1</secretion_rate_vein_wall_cell>
+		<time_of_first_injection type="double" units="min">0</time_of_first_injection>
+		<time_of_second_injection type="double" units="min">100</time_of_second_injection>
+		<time_of_third_injection type="double" units="min">200</time_of_third_injection>
+		
 		
 		<!-- for TRAIL -->
 		<TRAIL_secretion_rate type="double" units="1/min">0.1</TRAIL_secretion_rate>
 		<TRAIL_killing_level type="double" units="dimensionless">1e-3</TRAIL_killing_level>
+		<Model_flag type="int" units="dimensionless">3</Model_flag>
+		<TRAIL_generation_rate type="double" units="1/min">3</TRAIL_generation_rate>
+		<M type="double" units="dimensionless">0.01</M>
+		
 		
 	</user_parameters>
 	
